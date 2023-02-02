@@ -1,0 +1,211 @@
+﻿@model IEnumerable<webcrub.Models.Contacto>
+
+@{
+    ViewBag.Title = "Inicio";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>CRUD ASP.NET Y JAVASCRIPT</h2>
+
+<p>
+    <button type="button" value="0" onclick="abrir(this.value)" class="btn btn-success">Agregar</button>
+</p>
+<table class="table">
+    <tr>
+        <th>
+            @Html.DisplayNameFor(model => model.IdContacto)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Nombres)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Apellidos)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Telefono)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Correo)
+        </th>
+        <th></th>
+    </tr>
+
+@foreach (var item in Model) {
+    <tr>
+        <td>
+            @Html.DisplayFor(modelItem => item.IdContacto)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.Nombres)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.Apellidos)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.Telefono)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.Correo)
+        </td>
+        <td>
+            <button type="button" value="@Html.DisplayFor(modelItem => item.IdContacto)" onclick="abrir(this.value)" class="btn btn-primary">Editar</button>
+            <button type="button" value="@Html.DisplayFor(modelItem => item.IdContacto)" onclick="eliminar(this.value)" class="btn btn-danger">Eliminar</button>
+        </td>
+    </tr>
+}
+
+</table>
+
+<div class="modal" id="myModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                <h5 id="tex" class="modal-title"></h5>
+            </div>
+            <div class="modal-body">
+                <form class="formA">
+  
+                        <input type="hidden" id="idinfo" class="form-control" name="IdContacto" />
+
+                    <div class="form-group">
+                        <label> Nombres</label>
+                        <input type="text" id="nombre" class="form-control" name="Nombres" />
+                    </div>
+                    <div class="form-group">
+                        <label> Apellidos</label>
+                        <input type="text" id="apellido" class="form-control" name="Apellidos" />
+                    </div>
+                    <div class="form-group">
+                        <label> Telefono</label>
+                        <input type="text" id="tlf" class="form-control" name="Telefono" />
+                    </div>
+                    <div class="form-group">
+                        <label> Correo</label>
+                        <input type="text" id="correo" class="form-control" name="Correo" />
+                    </div>
+                    <button type="submit" id="agregarInfo" class="btn btn-primary col-2">Agregar</button>
+                    <button type="submit" id="editInfo" class="btn btn-primary col-2">Editar</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </form>
+            </div>
+           
+        </div>
+    </div>
+</div>
+
+@section scripts{
+  
+    <script>
+        let ps = document.querySelector('#tex');
+       
+
+        function abrir(val) {
+            let btnform = document.querySelector('#editInfo')
+            let btnagregar = document.querySelector('#agregarInfo')
+            let forma = document.querySelector('.formA')
+            
+            $('#myModal').modal('show');
+            if (val != 0) {
+                mostrarInfo(val)
+               
+                btnagregar.style.display = 'none';
+                btnform.style.display = 'inline';
+               
+                ps.innerHTML = 'Editar :'
+            } else {
+                document.querySelector('.formA').reset();
+                btnform.style.display = 'none';
+                btnagregar.style.display = 'inline';                               
+                ps.innerHTML = 'agregar :'
+            }
+
+        }
+
+        function mostrarInfo(valu) {
+
+            $.ajax({
+                type: "POST",
+                url: "/Contacto/mostrar",
+                dataType: 'json',
+                contentType: 'application/x-www-form-urlencoded; charset=UTF-8',
+                data: { IdContacto: valu },
+                success: function (response) {
+                    $("#nombre").val(response.Nombres)
+                    $("#apellido").val(response.Apellidos)
+                    $("#correo").val(response.Correo)
+                    $("#tlf").val(response.Telefono)
+                    $("#idinfo").val(response.IdContacto)
+                 
+                }
+
+            });
+        }
+
+        $('#agregarInfo').click(function (e) {
+            e.preventDefault();
+            $.ajax({
+                type: "POST",
+                url: "/Contacto/agregar",
+                dataType: 'json',
+                contentType: 'application/x-www-form-urlencoded; charset=UTF-8',
+                data: $(".formA").serialize(),
+                success: function (response) {
+
+                    alert(response)
+                    $('#myModal').modal('hide');
+                    document.querySelector('.formA').reset();
+                    $('.table').load(location.href + " .table");
+
+                }
+
+            });
+        });
+
+        $('#editInfo').click(function (e) {
+            e.preventDefault();
+            $.ajax({
+                type: "POST",
+                url: "/Contacto/editar",
+                dataType: 'json',
+                contentType: 'application/x-www-form-urlencoded; charset=UTF-8',
+                data: $(".formA").serialize(),
+                success: function (response) {
+
+                    alert(response)
+                    $('#myModal').modal('hide');
+                    $('.table').load(location.href + " .table");
+
+                }
+
+            });
+        });
+
+        function eliminar(valu) {
+
+            $.ajax({
+                type: "POST",
+                url: "/Contacto/eliminar",
+                dataType: 'json',
+                contentType: 'application/x-www-form-urlencoded; charset=UTF-8',
+                data: { IdContacto: valu },
+                success: function (response) {
+                    $('.table').load(location.href + " .table");
+                    alert(response)
+                    
+
+                }
+
+            });
+            
+        }
+
+
+
+
+    </script>
+
+
+}
